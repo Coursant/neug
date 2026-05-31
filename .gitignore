@@ -145,3 +145,7 @@ tools/python_bind/neug/extensions/
 
 # qoder ide
 .qoder/
+
+neug-env/
+third_party/
+.codegraph/
