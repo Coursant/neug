@@ -151,3 +151,21 @@
 - 问题：`Schema::Deserialize` 和 `OutArchive` 都是什么工作原理。
 - 结果：确认 storage `Schema` 的二进制持久化路径是 `PropertyGraph::DumpSchema()` -> `Schema::Serialize()` 写 `${work_dir}/schema`，`PropertyGraph::Open()` -> `loadSchema()` -> `Schema::Deserialize()` 读回；`InArchive` 负责把对象写入 byte buffer，`OutArchive` 负责从 byte buffer 顺序读出对象。
 - 产出：`topics/schema-deserialize-outarchive.md`。
+
+## 2026-06-02 - include/neug/compiler 设计思路
+
+- 问题：详解 `include/neug/compiler` 的设计思路，做成笔记。
+- 结果：整理 parser AST、bound semantic IR、logical plan、optimizer、gopt physical protobuf 转换的分层设计；补充 `BinderScope`、`ExpressionBinder`、`QueryGraphCollection`、factorized planner schema、`GPhysicalConvertor`/`GQueryConvertor` 的职责边界。
+- 产出：`topics/include-compiler-design.md`。
+
+## 2026-06-02 - gopt 模块解析
+
+- 问题：解析 `gopt` 模块，写成笔记。
+- 结果：确认 `gopt` 是 logical plan 到 protobuf physical plan 和 result schema YAML 的适配层；整理 `GOptPlanner`、`GCatalog`、`GAliasManager`、`GPhysicalAnalyzer`、`GPhysicalConvertor`、`GQueryConvertor`、`GExprConverter`、`GPhysicalTypeConverter`、`GResultSchema` 的职责和主数据流。
+- 产出：`topics/gopt-module.md`。
+
+## 2026-06-02 - GOptPlanner 线程安全注释
+
+- 问题：为什么 `GOptPlanner` 注释说不是 thread-safe，`compilePlan` 需要 read-lock，`update_meta/update_statistics` 需要 write-lock。
+- 结果：补充说明 `compilePlan()` 读取 catalog/schema/stats，`update_meta()` 会重建 `GCatalog` 的 `tables`/`relGroups`，`update_statistics()` 会替换 `StatsManager`；没有外层统一锁时，可能出现 catalog 被并发重建、schema 与 stats 版本不一致等 race。
+- 产出：`topics/gopt-module.md`。
