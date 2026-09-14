@@ -15,6 +15,8 @@
 
 #include <cstdio>
 #include <filesystem>
+#include <sstream>
+#include <stdexcept>
 
 #include <gtest/gtest.h>
 
@@ -24,6 +26,7 @@
 #include "neug/utils/encoder.h"
 #include "neug/utils/io/read/common/type_converter.h"
 #include "neug/utils/pb_utils.h"
+#include "neug/utils/serialization/in_archive.h"
 #include "neug/utils/string_view_vector.h"
 #include "neug/utils/yaml_utils.h"
 
@@ -218,6 +221,25 @@ TEST_F(BitsetTest, EmptySerialization) {
   restored.Deserialize(ss);
   EXPECT_EQ(restored.size(), 0);
   EXPECT_EQ(restored.count(), 0);
+}
+
+TEST_F(BitsetTest, DeserializeRejectsInconsistentSizeFields) {
+  // size_in_words_ beyond capacity_in_words_ describes an archive whose payload
+  // is larger than the buffer capacity can hold.
+  InArchive arc;
+  size_t size = 0;
+  size_t size_in_words = 4096;
+  size_t capacity = 0;
+  size_t capacity_in_words = 1;
+  arc << size << size_in_words << capacity << capacity_in_words;
+
+  std::stringstream ss;
+  size_t arc_size = arc.GetSize();
+  ss.write(reinterpret_cast<const char*>(&arc_size), sizeof(arc_size));
+  ss.write(arc.GetBuffer(), arc.GetSize());
+
+  Bitset restored;
+  EXPECT_THROW(restored.Deserialize(ss), std::runtime_error);
 }
 
 TEST_F(BitsetTest, BoundaryBits) {
