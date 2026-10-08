@@ -16,7 +16,6 @@
 #include <cstdio>
 #include <filesystem>
 #include <sstream>
-#include <stdexcept>
 
 #include <gtest/gtest.h>
 
@@ -24,6 +23,7 @@
 #include "neug/utils/bitset.h"
 #include "neug/utils/datetime_parsers.h"
 #include "neug/utils/encoder.h"
+#include "neug/utils/exception/exception.h"
 #include "neug/utils/io/read/common/type_converter.h"
 #include "neug/utils/pb_utils.h"
 #include "neug/utils/serialization/in_archive.h"
@@ -239,7 +239,7 @@ TEST_F(BitsetTest, DeserializeRejectsInconsistentSizeFields) {
   ss.write(arc.GetBuffer(), arc.GetSize());
 
   Bitset restored;
-  EXPECT_THROW(restored.Deserialize(ss), std::runtime_error);
+  EXPECT_THROW(restored.Deserialize(ss), neug::exception::RuntimeError);
 }
 
 TEST_F(BitsetTest, BoundaryBits) {
