@@ -291,8 +291,17 @@ void RenameDependentVar::visitPropertyExpr(std::shared_ptr<Expression> expr) {
   propertyExpr->setUniqueVarName(newVarName);
 }
 
+void RenameDependentVar::visitFunctionExpr(std::shared_ptr<Expression> expr) {
+  // ExpressionVisitor visits children first. Rebuild the parent's unique name
+  // after property expressions have been renamed so expression equality and
+  // predicate deduplication continue to distinguish different variables.
+  const auto functionExpr = expr->ptrCast<ScalarFunctionExpression>();
+  expr->setUniqueName(ScalarFunctionExpression::getUniqueName(
+      functionExpr->getFunction().name, expr->getChildren()));
+}
+
 bool ConstantExpressionVisitor::needFold(const Expression& expr) {
-  if (expr.expressionType == common::ExpressionType::LITERAL) {
+  if (ExpressionUtil::isLiteralLike(expr)) {
     return false;  // No need to fold a literal.
   }
   return isConstant(expr);
